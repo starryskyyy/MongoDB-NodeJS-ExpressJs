@@ -2,58 +2,89 @@ const mongoose = require('mongoose');
 
 const EmployeeSchema = new mongoose.Schema({
   firstname: {
-    type: String
+    type: String,
+    required: [true, "Provide first name"],
+    trim: true,
+    lowercase: true
   },
   lastname: {
-    type: String
+    type: String,
+    required: true
   },
   email: {
-    type: String
+    type: String,
+    required: true
   },
   gender: {
-    type: String
+    type: String,
+    required: true
   },
-  city:{
-    type: String
+  city: {
+    type: String,
+    required: true
   },
   designation: {
-    type: String
+    type: String,
+    required: true
   },
   salary: {
-    type: Number
+    type: Number,
+    required: true,
+    validate(value) {
+      if (value < 0.0) {
+        throw new Error("Negative salary is not allowed")
+      }
+    }
   },
-  created: { 
-    type: Date
+  created: {
+    type: Date,
+    default: Date.now
   },
-  updatedat: { 
-    type: Date
+  updatedat: {
+    type: Date,
+    default: Date.now
   },
 });
 
 //Declare Virtual Fields
-
-
+EmployeeSchema.virtual("fullname")
+  .get(function () {
+    return `${this.firstname} ${this.lastname}`
+  })
 //Custom Schema Methods
 //1. Instance Method Declaration
+EmployeeSchema.methods.getFullName = function () {
+  return `${this.firstname} ${this.lastname}`
+}
 
-
+EmployeeSchema.methods.getFormattedSalary = function () {
+  return `$${this.salary}`
+}
 //2. Static method declararion
-
+EmployeeSchema.statics.getEmployeeById = function(eid){
+  return this.find({_id: eid}).select("firstname lastname salary")
+}
 
 //Writing Query Helpers
+EmployeeSchema.query.sortByFirstName = function (flag){ // flag -1 or 1
+  return this.sort({'firstname': flag})
+}
 
+EmployeeSchema.query.byFirstName = function (name){ // flag -1 or 1
+  return this.where({'firstname': name})
+}
 
 
 EmployeeSchema.pre('save', (next) => {
   console.log("Before Save")
   let now = Date.now()
-   
+
   this.updatedat = now
   // Set a value for createdAt only if it is null
   if (!this.created) {
     this.created = now
   }
-  
+
   // Call the next function in the pre-save chain
   next()
 });
@@ -82,6 +113,8 @@ EmployeeSchema.post('save', (doc) => {
 EmployeeSchema.post('remove', (doc) => {
   console.log('%s has been removed', doc._id);
 });
+
+
 
 const Employee = mongoose.model("Employee", EmployeeSchema);
 module.exports = Employee;
