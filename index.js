@@ -1,3 +1,4 @@
+require("dotenv").config()
 const express = require('express');
 const mongoose = require('mongoose');
 const employeeRouter = require('./routes/EmployeeRoutes.js');
@@ -5,8 +6,9 @@ const employeeRouter = require('./routes/EmployeeRoutes.js');
 const app = express();
 app.use(express.json()); // Make sure it comes back as json
 
-//TODO - Replace you Connection String here
-mongoose.connect('mongodb+srv://101337015_Elizaveta:12345@cluster0.iugv30a.mongodb.net/w2023_comp3133?retryWrites=true&w=majority', {
+const DB_CONNECTION_STRING = process.env.DATABASE_URL
+
+mongoose.connect(DB_CONNECTION_STRING, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 }).then(success => {
